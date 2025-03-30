@@ -1,0 +1,66 @@
+% I commenti iniziano con %
+% Andare a capo con ,,
+% meglio mettere le label affianco al nome comando, così in bare le becchi subito
+% I comandi iniziano con "\". La definizione di un comando richiede tre parole chiave: "Given:", "print:" e "end."
+% Tutto è case sensitive
+% comando predefinito \Replace[in:$in$][out:$out$|]{$R$}
+
+% \usepackage{booktabs} % For nicer horizontal lines in tables
+
+
+
+Given: \EQ[label:$l$]{EQ}
+print:
+\begin{equation}^^^\label{$l$}
+   EQ
+\end{equation}
+end.
+
+Given: \Figure[label:$l$][pos:$pos$][size:$scale$][cap:$caption$]{$FILE$}
+print:
+
+\begin{figure}[$pos$]
+   \centering
+      \includegraphics^^^[scale=$scale$]^^^{$FILE$}
+      \caption{$caption$}
+      \label{$l$}
+\end{figure}
+
+end.
+
+Given: \highlight [color:<>] {<>}
+print: {\colorbox{<>}{<>}}
+end.
+
+Given: \fancysection {<>}
+print: \section*{<>}\addcontentsline{toc}{section}{<>}
+end.
+
+
+Given: \TABLE[label:$l$][position:$p$][caption:$c$][align:$a$][headers:$H$]{$R$}
+print:
+\begin{table}[$p$]
+   \centering
+   \caption{$c$}
+   \begin{tabular}{$a$}
+      \toprule
+\row{$H$}
+      \midrule
+ $R$
+      \bottomrule
+   \end{tabular}
+\label{$l$}
+\end{table}
+end.
+
+Given: \row{$R$}
+print:
+\Replace[in:&][out:|]{$R$} \\
+end.
+
+
+
+
+
+
+

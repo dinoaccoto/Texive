@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Manual – Texive v0.1</title>
+  <style>
+    /* Reset */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      background: #f4f4f4;
+      color: #333;
+      line-height: 1.6;
+      padding: 20px;
+    }
+    .container {
+      max-width: 800px;
+      margin: 20px auto;
+      background: #fff;
+      padding: 30px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    header h1 {
+      font-size: 2.5em;
+      margin-bottom: 10px;
+      color: #444;
+    }
+    header p {
+      font-size: 1.1em;
+      color: #777;
+    }
+    section {
+      margin-bottom: 40px;
+    }
+    section h2 {
+      font-size: 1.8em;
+      border-bottom: 2px solid #ddd;
+      padding-bottom: 10px;
+      margin-bottom: 20px;
+      color: #555;
+    }
+    section h3 {
+      font-size: 1.4em;
+      margin-bottom: 15px;
+      color: #666;
+    }
+    p {
+      margin-bottom: 15px;
+    }
+    ul, ol {
+      margin-left: 20px;
+      margin-bottom: 15px;
+    }
+    code {
+      background: #e8e8e8;
+      padding: 2px 4px;
+      border-radius: 3px;
+      font-family: Consolas, 'Courier New', Courier, monospace;
+    }
+    pre {
+      background: #e8e8e8;
+      padding: 15px;
+      border-radius: 5px;
+      overflow-x: auto;
+      margin-bottom: 15px;
+    }
+    a {
+      color: #3498db;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Texive</h1>
+      <p>An IDE for managing LaTeX documents via a custom scripting language</p>
+      <p>Version 0.1</p>
+    </header>
+    
+    <!-- 1. Introduction -->
+    <section id="introduction">
+      <h2>1. Introduction</h2>
+      <p>Texive is an Integrated Development Environment (IDE) that facilitates the creation and management of LaTeX documents. It segregates the document content (stored in <code>.mex</code> or plain text files) from transformation rules (defined in <code>.dex</code> files), enabling independent modifications to content and formatting.</p>
+      <p>This modular approach improves maintainability and allows iterative refinement of complex LaTeX documents.</p>
+    </section>
+    
+    <!-- 2. Technical Implementation Details -->
+    <section id="technical-details">
+      <h2>2. Technical Implementation Details</h2>
+      <p>Texive is implemented using standard web technologies. The primary components include:</p>
+      <ul>
+        <li><strong>HTML:</strong> Establishes the structure of the application by defining the various sections (editing areas, dialogs, status bar, etc.).</li>
+        <li><strong>CSS:</strong> Applies styling and ensures a responsive layout suitable for different devices.</li>
+        <li><strong>JavaScript:</strong> Implements core functionality:
+          <ul>
+            <li>Parsing commands from the source file (<code>.mex</code>).</li>
+            <li>Loading and parsing transformation rules from the <code>.dex</code> file.</li>
+            <li>Iteratively applying transformation rules—including support for nested commands—to produce LaTeX output.</li>
+            <li>Managing file input/output using the FileReader API and Blob objects.</li>
+          </ul>
+        </li>
+        <li><strong>Modular Organization:</strong> Functions are organized into utility routines for file handling, command parsing (e.g., <code>parseMexCommand</code>, <code>parseBracketToken</code>), and transformation processing (e.g., <code>applySubstitutions</code>, <code>transformText</code>).</li>
+      </ul>
+    </section>
+    
+    <!-- 3. Graphical User Interface Description -->
+    <section id="gui-description">
+      <h2>3. Graphical User Interface Description</h2>
+      <h3>3.1 Main Components</h3>
+      <ul>
+        <li><strong>Menu Bar:</strong> Provides access to functions such as File operations, editing commands, view options, and additional tools.</li>
+        <li><strong>Tab Bar:</strong> Contains tabs labeled “Source”, “Rules”, “Bare”, and “Output”. Only the active tab’s editing area is displayed, ensuring focus on the current task.</li>
+        <li><strong>Editing Area:</strong> Four separate text areas are allocated for the source file (<code>.mex</code>), transformation rules (<code>.dex</code>), a listing of parsed commands (Bare), and the LaTeX output (<code>.tex</code>).</li>
+        <li><strong>Status Bar:</strong> Continuously displays technical details such as cursor position, line count, word count, and character counts (with and without spaces).</li>
+      </ul>
+    </section>
+    
+    <!-- 4. File Organization -->
+    <section id="file-organization">
+      <h2>4. File Organization</h2>
+      <p>Texive operates with a distinct file structure to separate document content from formatting rules:</p>
+      <ul>
+        <li><strong>.mex / .txt:</strong> These files contain the main content and embedded commands.</li>
+        <li><strong>.dex:</strong> Contains transformation rules written in a custom scripting language. These rules specify how commands in the source file are processed into LaTeX.</li>
+        <li><strong>.tex:</strong> The output file generated by applying the transformation rules to the source content. This file is formatted in LaTeX.</li>
+      </ul>
+    </section>
+    
+    <!-- 5. Custom Scripting Language Syntax (.dex Rules) -->
+    <section id="custom-scripting">
+      <h2>5. Custom Scripting Language Syntax</h2>
+      <p>The <code>.dex</code> file defines the transformation rules that comprise the custom scripting language used by Texive. Each rule specifies how to identify a command within the source file and how to convert it into LaTeX output. The canonical structure of a rule is as follows:</p>
+      <pre><code>Given: \command [option:<<placeholder>>] {<<text>>}
+print: <output format with placeholders>
+end.</code></pre>
+      <p><strong>Details:</strong></p>
+      <ul>
+        <li><strong>Options and Text:</strong> Command options are enclosed in square brackets (<code>[]</code>), and a text block (if applicable) is enclosed in curly braces (<code>{}</code>). The text block is assigned to the key <code>TXT</code> for further processing.</li>
+        <li><strong>Glue Operator (^^^):</strong> In output templates, the operator <code>^^^</code> is used to concatenate adjacent text without adding extra spaces. It is removed during final processing.</li>
+        <li><strong>Comments:</strong> Lines beginning with <code>%</code> (ignoring leading whitespace) are treated as comments and are excluded from processing.</li>
+      </ul>
+    </section>
+    
+    <!-- 6. Examples -->
+    <section id="examples">
+      <h2>6. Examples</h2>
+      
+      <h3>6.1 Example 1: Equation Command</h3>
+      <p>This example defines a command for generating an equation.</p>
+      <p><strong>Rule (in .dex):</strong></p>
+      <pre><code>Given: \EQ[label:$l$]{$EQ$}
+print:
+\begin{equation}^^^\label{$l$}
+   $EQ$
+\end{equation}
+end.</code></pre>
+      <p><strong>Input (in .mex):</strong></p>
+      <pre><code>\EQ [label:eq:Einstein]{E=mc^2}</code></pre>
+      <p><strong>Output (in .tex):</strong></p>
+      <pre><code>\begin{equation}\label{eq:Einstein}
+   E=mc^2
+\end{equation}</code></pre>
+      
+      <h3>6.2 Example 2: Command Using <code>\Replace</code> with <code>\row</code></h3>
+      <p>This example demonstrates the built-in <code>\Replace</code> command, which performs a text substitution within a command’s text block.</p>
+      <p><strong>Rule (in .dex):</strong></p>
+      <pre><code>Given: \row{$R$}
+print:
+\Replace[in:&][out:|]{$R$} \\
+end.</code></pre>
+      <p><strong>Input (in .mex):</strong></p>
+      <pre><code>\row{a | b | c }</code></pre>
+      <p><strong>Output (in .tex):</strong></p>
+      <pre><code>a & b & c \\</code></pre>
+      
+      <h3>6.3 Example 3: Nested Commands with <code>\Table</code> and <code>\row</code></h3>
+      <p>This example illustrates nested commands. The <code>\Table</code> command incorporates the <code>\row</code> command, which internally employs <code>\Replace</code> for processing.</p>
+      <p><strong>Rule (in .dex):</strong></p>
+      <pre><code>Given: \Table[label:$l$][position:$p$][caption:$c$][align:$a$][headers:$H$]{$R$}
+print:
+\begin{table}[$p$]
+   \centering
+   \caption{$c$}
+   \begin{tabular}{$a$}
+      \toprule
+\row{$H$}
+      \midrule
+ $R$
+      \bottomrule
+   \end{tabular}
+\label{$l$}
+\end{table}
+end.</code></pre>
+      <p><strong>Input (in .mex):</strong></p>
+      <pre><code>\Table[label: tab:test_table],,
+[position: h!] [align: l c r],,
+[caption: This is the caption of the table. The caption can be long ,,
+and you can split it in more lines, if needed, using the double-commas.],,
+[headers: Header 1 | Header 2 | Header 3],,
+{
+\row{a11 | a12 | a13}
+\row{a21 | a22 | a23}
+\row{a31 | a32 | a33}
+}</code></pre>
+      <p><strong>Output (in .tex):</strong></p>
+      <pre><code>\begin{table}[h!]
+   \centering
+   \caption{This is the caption of the table. The caption can be long and you can split it in more lines, if needed, using the double-commas.}
+   \begin{tabular}{l c r}
+      \toprule
+Header 1 & Header 2 & Header 3\\
+      \midrule
+
+a11 & a12 & a13\\
+a21 & a22 & a23\\
+a31 & a32 & a33\\
+
+      \bottomrule
+   \end{tabular}
+\label{tab:test_table}
+\end{table}</code></pre>
+    </section>
+    
+  </div>
+  <hr>
+  <center><small>(c) Dino Accoto 2025. All rights reserved.</small></center>
+</body>
+</html>

@@ -1,0 +1,33 @@
+Versione originale:
+
+\EQ [label:eq:Einstein]{E=mc^2}
+
+\EQ{E=mc^2}
+
+Primo esempio di una semplice figura
+\Figure[label:fig:prova][pos:h!][size:3cm][cap:This is  the caption]{\folder\filename.jpg}
+
+Secondo esempio di una figura (uso ,, per andare a capo per rendere le opzioni più visibili):
+
+\Figure[label:fig:prova],,
+[pos:h!][size:3cm],,
+[cap:This is  a very long caption, which I would like to hve more space. I can even split the caption in ,,
+more than one line.],,
+{\folder\filename.jpg}
+
+
+Esempio di una tabella. Faccio ampio uso di ,, per andare a capo per migliorare la visibilità:
+
+\Table[label: tab:prova_tabella],,
+[position: h!] [align: l c r],,
+[caption: Questa è la caption della tabella. Qua posso scrivere tante cose ,,
+anche su più righe, se voglio.],,
+[headers: Header 1 | Header 2 | Header 3],,
+{
+\row{1 | 2 | 3}
+\row{4 | 5 | 6}
+\row{7 | 8 | 9}
+}
+
+
+\Replace[in:ciao][out:a]{Testo di prova come va?}

@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Texive</title>
+  <!-- Favicon -->
+  <link rel="icon" href="matex.ico" type="image/x-icon">
+  <style>
+    /* Reset styles */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: sans-serif;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    /* Menu bar */
+    #menuBar {
+      background-color: black;
+      color: green;
+      display: flex;
+      flex-wrap: nowrap;
+      padding: 5px 10px;
+      border-bottom: 1px solid green;
+    }
+    .menu {
+      position: relative;
+      margin-right: 20px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .menu > span {
+      padding: 5px 10px;
+    }
+    .dropdown {
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      background-color: black;
+      color: green;
+      border: 1px solid green;
+      z-index: 100;
+      min-width: 150px;
+    }
+    .dropdown div {
+      padding: 5px 10px;
+      cursor: pointer;
+    }
+    .dropdown div:hover {
+      background-color: green;
+      color: black;
+    }
+    .menu:hover .dropdown {
+      display: block;
+    }
+    /* Tabs bar: "Source", "Rules", "Bare" and "Output"; pulsante "RUN" a destra */
+    #tabsBar {
+      display: flex;
+      align-items: center;
+      border-bottom: 1px solid green;
+      background-color: black;
+      color: green;
+      padding: 5px 0px 5px 10px;
+      flex-wrap: nowrap;
+    }
+    .tab {
+      padding: 8px 16px;
+      cursor: pointer;
+      display: block;
+      margin-right: 5px;
+    }
+    .tab.active {
+      background-color: #111;
+      border: 2px solid green;
+      border-radius: 4px;
+    }
+    #btnTransform {
+      margin-left: auto;
+      padding: 8px 16px;
+      cursor: pointer;
+      background-color: black;
+      color: green;
+      border: 2px solid green;
+      font-weight: bold;
+    }
+    #btnTransform:hover {
+      background-color: green;
+      color: black;
+    }
+    /* Editor container */
+    #editorContainer {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      height: calc(100vh - 80px);
+    }
+    #editorContent {
+      flex: 1;
+      position: relative;
+    }
+    /* Text areas per Source, Rules, Bare e Output */
+    #editorContent textarea {
+      width: 100%;
+      height: 100%;
+      padding: 10px;
+      font-family: "Lucida Fax", monospace;
+      font-size: 14px;
+      background-color: lightgray;
+      color: black;
+      border: none;
+      outline: none;
+      resize: none;
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+    /* Evidenzia il testo selezionato */
+    textarea::selection {
+      background: black;
+      color: green;
+    }
+    /* Bottom status bar */
+    #bottomBar {
+      background-color: black;
+      color: green;
+      padding: 5px 10px;
+      display: flex;
+      flex-wrap: wrap;
+      font-size: 12px; 
+    }
+    .statusLabel {
+      margin-right: 15px;
+    }
+    /* Dialog Find and Replace */
+    #findDialog,
+    #replaceDialog {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: black;
+      color: green;
+      border: 1px solid green;
+      padding: 10px;
+      z-index: 1000;
+    }
+    /* Contenitore per i pulsanti dei dialog, centrati orizzontalmente */
+    .dialog-buttons {
+      text-align: center;
+      margin-top: 10px;
+    }
+    /* Stile per il form della finestra Replace: allineamento verticale dei campi */
+    #replaceDialog .form-row {
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    #replaceDialog .form-row label {
+      display: inline-block;
+      width: 120px;
+    }
+    /* Responsive */
+    @media (max-width: 600px) {
+      #menuBar, #tabsBar {
+        flex-direction: row;
+      }
+      .menu {
+        margin-right: 20px;
+      }
+      #bottomBar {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+      }
+      #editorContainer {
+        padding-bottom: 40px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Menu -->
+  <div id="menuBar">
+    <div class="menu">
+      <span>File</span>
+      <div class="dropdown">
+        <div id="loadDex">Load DEX</div>
+        <div id="openFile">Open</div>
+        <div id="saveFile">Save</div>
+        <div id="saveFileAs">Save As...</div>
+        <div id="exitApp">Exit</div>
+      </div>
+    </div>
+    <div class="menu">
+      <span>Edit</span>
+      <div class="dropdown">
+        <div id="selectAll">Select All</div>
+        <div id="findText">Find</div>
+        <div id="replaceText">Replace</div>
+        <div id="commentText">Comment</div>
+        <div id="uncommentText">Uncomment</div>
+      </div>
+    </div>
+    <div class="menu">
+      <span>View</span>
+      <div class="dropdown">
+        <div id="fullScreen">Full screen</div>
+        <div id="viewWindow">View in window</div>
+        <div id="changeFontSize">Font Size</div>
+      </div>
+    </div>
+    <div class="menu">
+      <span>More</span>
+      <div class="dropdown">
+        <div id="help">Manual</div>
+        <div id="faq">FAQ</div>
+        <div id="about">About</div>
+      </div>
+    </div>
+  </div>
+  <!-- Hidden file inputs -->
+  <input type="file" id="openFileInput" style="display: none;" accept=".mex,.dex,.tex,.txt">
+  <input type="file" id="loadDexInput" style="display: none;" accept=".dex">
+  <!-- Editor con Tabs -->
+  <div id="editorContainer">
+    <div id="tabsBar">
+      <div class="tab active" data-tab="mex">Source</div>
+      <div class="tab" data-tab="dex">Rules</div>
+      <div class="tab" data-tab="bare" style="display:none;">Bare</div>
+      <div class="tab" data-tab="tex" style="display:none;">Output</div>
+      <button id="btnTransform">RUN</button>
+    </div>
+    <div id="editorContent">
+      <textarea id="textAreaMex" placeholder="Enter your text here..."></textarea>
+      <textarea id="textAreaDex" placeholder="Content of .dex" style="display:none;"></textarea>
+      <textarea id="textAreaBare" placeholder="Bare content" style="display:none;"></textarea>
+      <textarea id="textAreaTex" placeholder="Content of .tex" style="display:none;"></textarea>
+    </div>
+    <div id="bottomBar">
+      <span id="labelCursor" class="statusLabel">L0,C0</span>
+      <span id="labelLines" class="statusLabel">Lines: 0</span>
+      <span id="labelWords" class="statusLabel">Words: 0</span>
+      <span id="labelCharsNoSpace" class="statusLabel">ch: 0</span>
+      <span id="labelCharsWithSpace" class="statusLabel">ch+[]: 0</span>
+    </div>
+  </div>
+  <!-- Dialog per Find -->
+  <div id="findDialog">
+    <label for="findInput">Search:</label>
+    <input type="text" id="findInput" style="margin-bottom: 10px;">
+    <br>
+    <div class="dialog-buttons">
+      <button id="findPrev">Previous</button>
+      <button id="findNext">Next</button>
+      <button id="findClose">Close</button>
+    </div>
+  </div>
+  <!-- Dialog per Replace -->
+  <div id="replaceDialog">
+    <div class="form-row">
+      <label for="replaceFindInput">Find:</label>
+      <input type="text" id="replaceFindInput">
+    </div>
+    <div class="form-row">
+      <label for="replaceWithInput">Replace with:</label>
+      <input type="text" id="replaceWithInput">
+    </div>
+    <div class="dialog-buttons">
+      <button id="replaceBtn">Replace</button>
+      <button id="replaceAllBtn">Replace All</button>
+      <button id="replaceCloseBtn">Close</button>
+    </div>
+  </div>
+  <script>
+    /* Global state */
+    let currentTab = "mex";
+    let currentFilePath = { mex: null, dex: null, bare: null, tex: null };
+    let unsavedChanges = { mex: false, dex: false, bare: false, tex: false };
+    let transformRules = null;
+
+    /* Utility functions */
+    function getActiveTextArea() {
+      if (currentTab === "mex") return document.getElementById('textAreaMex');
+      if (currentTab === "dex") return document.getElementById('textAreaDex');
+      if (currentTab === "bare") return document.getElementById('textAreaBare');
+      if (currentTab === "tex") return document.getElementById('textAreaTex');
+    }
+    // Genera un nome file univoco con timestamp nel formato YYMMDD
+    function defaultFilenameForTab(tab) {
+      const now = new Date();
+      const year = now.getFullYear().toString().slice(-2);
+      const month = (now.getMonth() + 1).toString().padStart(2, '0');
+      const day = now.getDate().toString().padStart(2, '0');
+      const dateStr = year + month + day;
+      if (tab === "mex") return dateStr + "-Mex.mex";
+      if (tab === "dex") return dateStr + "-Dex.dex";
+      if (tab === "bare") return dateStr + "-Bare.txt";
+      if (tab === "tex") return dateStr + "-Tex.tex";
+      return dateStr + "-Output.txt";
+    }
+    function isValidExtension(filename) {
+      const ext = filename.split('.').pop().toLowerCase();
+      return ext === "mex" || ext === "dex" || ext === "tex" || ext === "txt";
+    }
+    function downloadFile(content, filename) {
+      if (!isValidExtension(filename)) {
+        alert("Invalid file format. Use one among: Source (.mex), Rules definition (.dex), Output (.tex), Plain text (.txt)");
+        return;
+      }
+      const blob = new Blob([content], {type: "text/plain;charset=utf-8"});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+      unsavedChanges[currentTab] = false;
+    }
+    function updateStatusBar() {
+      const textArea = getActiveTextArea();
+      const text = textArea.value;
+      const lines = text.split('\n').length;
+      const words = text.trim().split(/\s+/).filter(Boolean).length;
+      const charsWithSpace = text.length;
+      const charsNoSpace = text.replace(/\s/g, '').length;
+      document.getElementById('labelLines').textContent = "Lines: " + lines;
+      document.getElementById('labelWords').textContent = "Words: " + words;
+      document.getElementById('labelCharsNoSpace').textContent = "ch: " + charsNoSpace;
+      document.getElementById('labelCharsWithSpace').textContent = "ch+[]: " + charsWithSpace;
+      const pos = textArea.selectionStart;
+      const before = text.substring(0, pos);
+      const line = before.split('\n').length;
+      const col = before.length - before.lastIndexOf('\n');
+      document.getElementById('labelCursor').textContent = "L" + line + ",C" + col;
+    }
+    function switchTab(tabName) {
+      currentTab = tabName;
+      // Aggiorna lo stile dei tab
+      document.querySelectorAll('#tabsBar .tab').forEach(tab => {
+        if (tab.getAttribute('data-tab') === tabName) {
+          tab.classList.add('active');
+        } else {
+          tab.classList.remove('active');
+        }
+      });
+      // Mostra solo l'area di testo attiva
+      document.getElementById('textAreaMex').style.display = (tabName === "mex") ? "block" : "none";
+      document.getElementById('textAreaDex').style.display = (tabName === "dex") ? "block" : "none";
+      document.getElementById('textAreaBare').style.display = (tabName === "bare") ? "block" : "none";
+      document.getElementById('textAreaTex').style.display = (tabName === "tex") ? "block" : "none";
+      updateStatusBar();
+    }
+    function showTabButton(tabName) {
+      const tabButton = document.querySelector('#tabsBar .tab[data-tab="' + tabName + '"]');
+      if (tabButton) { tabButton.style.display = "block"; }
+    }
+    // Assegna gli eventi ai tab
+    document.querySelectorAll('#tabsBar .tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        switchTab(tab.getAttribute('data-tab'));
+      });
+    });
+    /* 
+      Funzione di pre-elaborazione per concatenare le righe del file .mex 
+      utilizzando il nuovo marker ",,".
+      Se una riga termina (eventualmente dopo spazi) con ",," il marker viene rimosso 
+      e la riga viene unita alla successiva; analogamente, se una riga inizia (eventualmente dopo spazi) con ",,"
+      essa viene unita alla precedente.
+    */
+    function preProcessGlue(text) {
+      let lines = text.split('\n');
+      let result = [];
+      let buffer = "";
+      for (let i = 0; i < lines.length; i++) {
+        let line = lines[i];
+        if (buffer !== "") {
+          // Rimuove il marker all'inizio, se presente
+          line = line.replace(/^\s*,,\s*/, '');
+          buffer += line;
+        } else {
+          buffer = line;
+        }
+        // Se il buffer termina con il marker ",," (eventualmente seguito da spazi)
+        if (buffer.match(/,,\s*$/)) {
+          // Rimuove il marker e continua la concatenazione
+          buffer = buffer.replace(/,,\s*$/, '');
+          continue;
+        } else {
+          result.push(buffer);
+          buffer = "";
+        }
+      }
+      if (buffer !== "") {
+        result.push(buffer);
+      }
+      return result.join('\n');
+    }
+    /* Funzioni per la trasformazione del testo */
+    function parseDexFile(dexText) {
+      // Ignora solo le linee che iniziano con '%' (le linee che iniziano con '#' saranno considerate)
+      dexText = dexText.split('\n').filter(line => {
+        return !line.trim().startsWith('%');
+      }).join('\n');
+      let rules = {};
+      const rulePattern = /Given:([\s\S]*?)end\./g;
+      let match;
+      while ((match = rulePattern.exec(dexText)) !== null) {
+        let ruleBlock = match[1];
+        let commandMatch = /\\([A-Za-z0-9]+)/.exec(ruleBlock);
+        if (!commandMatch) continue;
+        let commandName = commandMatch[1];
+        let options = {};
+        let sqPattern = /\[([^:\]]+):(.*?)\]/gs;
+        let optMatch;
+        while ((optMatch = sqPattern.exec(ruleBlock)) !== null) {
+          let label = optMatch[1].trim();
+          let placeholder = optMatch[2].trim();
+          options[label] = placeholder;
+        }
+        let txtPlaceholder = null;
+        let curlyMatch = /\{([\s\S]*?)\}/.exec(ruleBlock);
+        if (curlyMatch) { txtPlaceholder = curlyMatch[1].trim(); }
+        let templateMatch = /print:\s*([\s\S]*)/.exec(ruleBlock);
+        let template = "";
+        if (templateMatch) { template = templateMatch[1].trim(); }
+        rules[commandName] = {
+          "options": options,
+          "txt_placeholder": txtPlaceholder,
+          "template": template
+        };
+      }
+      return rules;
+    }
+    function parseBracketToken(text, startIndex, openBracket, closeBracket) {
+      let i = startIndex;
+      if (text[i] !== openBracket) {
+        throw new Error("Expected " + openBracket + " at position " + i);
+      }
+      i++;
+      let token = "";
+      let bracketCount = 1;
+      while (i < text.length && bracketCount > 0) {
+        let c = text[i];
+        if (c === openBracket) { bracketCount++; }
+        else if (c === closeBracket) {
+          bracketCount--;
+          if (bracketCount === 0) { i++; break; }
+        }
+        if (bracketCount > 0) token += c;
+        i++;
+      }
+      return { token: token, newIndex: i };
+    }
+    function parseMexCommand(text, startIndex) {
+      let i = startIndex;
+      let n = text.length;
+      if (text[i] !== '\\') return { commandName: null, options: null, newIndex: i };
+      i++;
+      let commandName = "";
+      while (i < n && /[A-Za-z0-9]/.test(text[i])) {
+        commandName += text[i];
+        i++;
+      }
+      while (i < n && (text[i] === ' ' || text[i] === '\t')) { i++; }
+      let optionsDict = {};
+      while (i < n) {
+        if (text[i] === '[') {
+          let result = parseBracketToken(text, i, '[', ']');
+          i = result.newIndex;
+          let parts = result.token.split(":");
+          if (parts.length >= 2) {
+            let label = parts[0].trim();
+            let value = parts.slice(1).join(":").trim();
+            optionsDict[label] = value;
+          }
+        } else if (text[i] === '{') {
+          let result = parseBracketToken(text, i, '{', '}');
+          i = result.newIndex;
+          // Non processiamo ricorsivamente qui il contenuto: lo lasciamo per il successivo ciclo di trasformazione
+          optionsDict["TXT"] = result.token;
+        } else {
+          break;
+        }
+        while (i < n && (text[i] === ' ' || text[i] === '\t')) { i++; }
+      }
+      return { commandName: commandName, options: optionsDict, newIndex: i };
+    }
+    function removeNullTokens(text) {
+      let separatorPattern = /(\s+|\^\^\^)/g;
+      let lines = text.split('\n');
+      let newLines = lines.map(line => {
+        let parts = line.split(separatorPattern);
+        let newParts = parts.map(part => {
+          if (/^\s+$/.test(part) || part === "^^^") return part;
+          else return (part.indexOf("NULLNULL") !== -1) ? "" : part;
+        });
+        return newParts.join("");
+      });
+      return newLines.join("\n");
+    }
+    function processGlue(text) {
+      return text.split("^^^").join("");
+    }
+    function applySubstitutions(text, rules) {
+      let outputText = "";
+      let i = 0;
+      let substitutionsCount = 0;
+      while (i < text.length) {
+        if (text[i] === '\\') {
+          let { commandName, options, newIndex } = parseMexCommand(text, i);
+          // Comando interno standard \Replace
+          if (commandName === "Replace") {
+            substitutionsCount++;
+            let replacement = options["in"] || "NULLNULL";
+            let target = options["out"] || "NULLNULL";
+            let originalText = options["TXT"] || "";
+            let processed = originalText.split(target).join(replacement);
+            outputText += processed;
+            i = newIndex;
+            continue;
+          } else if (rules && (commandName in rules)) {
+            substitutionsCount++;
+            let rule = rules[commandName];
+            let processed = rule.template;
+            // Se il comando non fornisce un'opzione, usa quella definita nella regola
+            for (let label in rule.options) {
+              let placeholder = rule.options[label];
+              let value = (options[label] !== undefined ? options[label] : rule.options[label]);
+              processed = processed.split(placeholder).join(value);
+            }
+            if (rule.txt_placeholder !== null) {
+              let value = options["TXT"] || "NULLNULL";
+              if (processed.indexOf("{" + rule.txt_placeholder + "}") !== -1) {
+                processed = processed.split("{" + rule.txt_placeholder + "}").join("{" + value + "}");
+              } else {
+                processed = processed.split(rule.txt_placeholder).join(value);
+              }
+            }
+            processed = removeNullTokens(processed);
+            processed = processGlue(processed);
+            outputText += processed;
+            i = newIndex;
+            continue;
+          } else {
+            outputText += text[i];
+            i++;
+          }
+        } else {
+          outputText += text[i];
+          i++;
+        }
+      }
+      return { newText: outputText, substitutionsCount: substitutionsCount };
+    }
+    function transformText(text, rules) {
+      let currentText = text;
+      while (true) {
+        let { newText, substitutionsCount } = applySubstitutions(currentText, rules);
+        if (substitutionsCount === 0) break;
+        currentText = newText;
+      }
+      return currentText;
+    }
+    /* Funzione per aggiornare la tab "Bare" */
+    function updateBareTab() {
+      // Aggiorna le regole leggendo il contenuto attuale della textarea delle regole (.dex)
+      try {
+        transformRules = parseDexFile(document.getElementById('textAreaDex').value);
+      } catch(e) {
+        transformRules = {};
+      }
+      let sourceText = document.getElementById('textAreaMex').value;
+      let bareText = "";
+      let i = 0;
+      while (i < sourceText.length) {
+        if (sourceText[i] === '\\') {
+          let result = parseMexCommand(sourceText, i);
+          if (result.commandName && transformRules && (result.commandName in transformRules)) {
+            let lineNumber = sourceText.substring(0, i).split('\n').length;
+            let commandStr = sourceText.substring(i, result.newIndex);
+            bareText += lineNumber + "\t" + commandStr + "\n";
+          }
+          i = result.newIndex;
+        } else {
+          i++;
+        }
+      }
+      document.getElementById('textAreaBare').value = bareText;
+      if (bareText.trim() !== "") { showTabButton("bare"); }
+    }
+    window.addEventListener('beforeunload', function (e) {
+      if (unsavedChanges["mex"] || unsavedChanges["dex"] || unsavedChanges["tex"]) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    });
+    /* Eventi per i pulsanti e funzioni del menu e degli editor */
+    document.getElementById('openFile').addEventListener('click', () => {
+      document.getElementById('openFileInput').click();
+    });
+    document.getElementById('openFileInput').addEventListener('change', (event) => {
+      const file = event.target.files[0];
+      if (file) {
+        let ext = file.name.split('.').pop().toLowerCase();
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          if (ext === "mex" || ext === "txt") {
+            document.getElementById('textAreaMex').value = e.target.result;
+            unsavedChanges["mex"] = false;
+            currentFilePath["mex"] = file.name;
+            switchTab("mex");
+            if(transformRules) updateBareTab();
+          } else if (ext === "dex") {
+            document.getElementById('textAreaDex').value = e.target.result;
+            unsavedChanges["dex"] = false;
+            currentFilePath["dex"] = file.name;
+            try {
+              transformRules = parseDexFile(e.target.result);
+              showTabButton("dex");
+              showTabButton("bare");
+              switchTab("dex");
+              updateBareTab();
+              alert("Rules loaded successfully.");
+            } catch (err) {
+              alert("Error loading .dex file:\n" + err);
+            }
+          } else if (ext === "tex") {
+            document.getElementById('textAreaTex').value = e.target.result;
+            unsavedChanges["tex"] = false;
+            currentFilePath["tex"] = file.name;
+            showTabButton("tex");
+            switchTab("tex");
+          } else {
+            alert("Unsupported file format. Allowed extensions: Source text (.mex), Rules definition (.dex), Output (.tex) or Plain text (.txt)");
+          }
+          updateStatusBar();
+        };
+        reader.readAsText(file, "UTF-8");
+      }
+    });
+    document.getElementById('saveFile').addEventListener('click', () => {
+      let filename = currentFilePath[currentTab];
+      if (!filename) { filename = defaultFilenameForTab(currentTab); }
+      const text = getActiveTextArea().value;
+      downloadFile(text, filename);
+      currentFilePath[currentTab] = filename;
+    });
+    document.getElementById('saveFileAs').addEventListener('click', () => {
+      const filename = prompt("Enter the filename with extension:\n- Source text (.mex)\n- Rules definition (.dex)\n- Output (.tex)\n- Plain text (.txt)", defaultFilenameForTab(currentTab));
+      if (filename) {
+        if (!isValidExtension(filename)) {
+          alert("Invalid file format. Use one among: .mex, .dex, .tex, .txt");
+          return;
+        }
+        currentFilePath[currentTab] = filename;
+        const text = getActiveTextArea().value;
+        downloadFile(text, filename);
+      }
+    });
+    document.getElementById('exitApp').addEventListener('click', () => {
+      let unsavedList = [];
+      for (let tab in unsavedChanges) {
+        if (unsavedChanges[tab]) {
+          let fname = currentFilePath[tab] ? currentFilePath[tab] : defaultFilenameForTab(tab);
+          unsavedList.push(fname);
+        }
+      }
+      if (unsavedList.length > 0) {
+        let message = "The following files have not been saved:\n" + unsavedList.join("\n") + "\n\nAre you sure you want to exit without saving?";
+        if (confirm(message)) { window.close(); }
+      } else {
+        window.close();
+      }
+    });
+    /* Load DEX dal menu File */
+    document.getElementById('loadDex').addEventListener('click', () => {
+      document.getElementById('loadDexInput').click();
+    });
+    document.getElementById('loadDexInput').addEventListener('change', (event) => {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          try {
+            transformRules = parseDexFile(e.target.result);
+            document.getElementById('textAreaDex').value = e.target.result;
+            unsavedChanges["dex"] = false;
+            currentFilePath["dex"] = file.name;
+            showTabButton("dex");
+            showTabButton("bare");
+            switchTab("dex");
+            updateBareTab();
+            alert("Rules loaded successfully.");
+          } catch (err) {
+            alert("Error loading .dex file:\n" + err);
+          }
+        };
+        reader.readAsText(file, "UTF-8");
+      }
+    });
+    /* Funzioni Edit */
+    document.getElementById('selectAll').addEventListener('click', () => {
+      const textArea = getActiveTextArea();
+      textArea.select();
+    });
+    // Find: apre la dialog per la ricerca
+    document.getElementById('findText').addEventListener('click', () => {
+      document.getElementById('findDialog').style.display = 'block';
+      document.getElementById('findInput').focus();
+    });
+    // Replace: apre la dialog per la sostituzione
+    document.getElementById('replaceText').addEventListener('click', () => {
+      document.getElementById('replaceDialog').style.display = 'block';
+      document.getElementById('replaceFindInput').focus();
+    });
+    // Comment: aggiunge "%" all'inizio di ogni riga del testo selezionato
+    document.getElementById('commentText').addEventListener('click', () => {
+      let textArea = getActiveTextArea();
+      let startPos = textArea.selectionStart;
+      let endPos = textArea.selectionEnd;
+      let value = textArea.value;
+      let selectedText = value.substring(startPos, endPos);
+      if (!selectedText) {
+        selectedText = value;
+        startPos = 0;
+        endPos = value.length;
+      }
+      let modified = selectedText.split('\n').map(line => '%' + line).join('\n');
+      textArea.setRangeText(modified, startPos, endPos, 'end');
+      unsavedChanges[currentTab] = true;
+      updateStatusBar();
+    });
+    // Uncomment: rimuove "%" dall'inizio di ogni riga del testo selezionato
+    document.getElementById('uncommentText').addEventListener('click', () => {
+      let textArea = getActiveTextArea();
+      let startPos = textArea.selectionStart;
+      let endPos = textArea.selectionEnd;
+      let value = textArea.value;
+      let selectedText = value.substring(startPos, endPos);
+      if (!selectedText) {
+        selectedText = value;
+        startPos = 0;
+        endPos = value.length;
+      }
+      let modified = selectedText.split('\n').map(line => line.replace(/^%/, '')).join('\n');
+      textArea.setRangeText(modified, startPos, endPos, 'end');
+      unsavedChanges[currentTab] = true;
+      updateStatusBar();
+    });
+    /* Eventi per la dialog Replace */
+    document.getElementById('replaceBtn').addEventListener('click', () => {
+      let searchText = document.getElementById('replaceFindInput').value;
+      let replaceText = document.getElementById('replaceWithInput').value;
+      if (!searchText) {
+        alert("Please enter text to search for.");
+        return;
+      }
+      let textArea = getActiveTextArea();
+      let startPos = textArea.selectionStart;
+      let endPos = textArea.selectionEnd;
+      if (textArea.value.substring(startPos, endPos) === searchText) {
+        textArea.setRangeText(replaceText);
+        unsavedChanges[currentTab] = true;
+        updateStatusBar();
+      } else {
+        let index = textArea.value.indexOf(searchText, startPos);
+        if (index !== -1) {
+          textArea.focus();
+          textArea.setSelectionRange(index, index + searchText.length);
+          textArea.setRangeText(replaceText);
+          unsavedChanges[currentTab] = true;
+          updateStatusBar();
+        } else {
+          alert("Text not found.");
+        }
+      }
+    });
+    document.getElementById('replaceAllBtn').addEventListener('click', () => {
+      let searchText = document.getElementById('replaceFindInput').value;
+      let replaceText = document.getElementById('replaceWithInput').value;
+      if (!searchText) {
+        alert("Please enter text to search for.");
+        return;
+      }
+      let textArea = getActiveTextArea();
+      let content = textArea.value;
+      let newContent = content.split(searchText).join(replaceText);
+      textArea.value = newContent;
+      unsavedChanges[currentTab] = true;
+      updateStatusBar();
+    });
+    document.getElementById('replaceCloseBtn').addEventListener('click', () => {
+      document.getElementById('replaceDialog').style.display = 'none';
+    });
+    /* Eventi per la dialog Find */
+    document.getElementById('findPrev').addEventListener('click', () => {
+      const searchText = document.getElementById('findInput').value;
+      if (!searchText) {
+        alert("Please enter search text.");
+        return;
+      }
+      const textArea = getActiveTextArea();
+      const content = textArea.value;
+      const startPos = textArea.selectionStart;
+      let prevIndex = content.lastIndexOf(searchText, startPos - 1);
+      if (prevIndex === -1) { prevIndex = content.lastIndexOf(searchText); }
+      if (prevIndex !== -1) {
+        textArea.focus();
+        textArea.setSelectionRange(prevIndex, prevIndex + searchText.length);
+        updateStatusBar();
+      } else {
+        alert("Text not found.");
+      }
+    });
+    document.getElementById('findNext').addEventListener('click', () => {
+      const searchText = document.getElementById('findInput').value;
+      if (!searchText) {
+        alert("Please enter search text.");
+        return;
+      }
+      const textArea = getActiveTextArea();
+      const content = textArea.value;
+      const startPos = textArea.selectionEnd;
+      let nextIndex = content.indexOf(searchText, startPos);
+      if (nextIndex === -1) { nextIndex = content.indexOf(searchText, 0); }
+      if (nextIndex !== -1) {
+        textArea.focus();
+        textArea.setSelectionRange(nextIndex, nextIndex + searchText.length);
+        updateStatusBar();
+      } else {
+        alert("Text not found.");
+      }
+    });
+    document.getElementById('findClose').addEventListener('click', () => {
+      document.getElementById('findDialog').style.display = 'none';
+    });
+    /* Funzioni View */
+    document.getElementById('fullScreen').addEventListener('click', () => {
+      if (document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen();
+      } else if (document.documentElement.webkitRequestFullscreen) {
+        document.documentElement.webkitRequestFullscreen();
+      } else if (document.documentElement.msRequestFullscreen) {
+        document.documentElement.msRequestFullscreen();
+      }
+    });
+    document.getElementById('viewWindow').addEventListener('click', () => {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      } else if (document.webkitExitFullscreen) {
+        document.webkitExitFullscreen();
+      } else if (document.msExitFullscreen) {
+        document.documentElement.msExitFullscreen();
+      }
+    });
+    // Ripristino della funzionalità "Font Size" (menu View)
+    document.getElementById('changeFontSize').addEventListener('click', () => {
+      const textArea = getActiveTextArea();
+      const currentSize = parseInt(window.getComputedStyle(textArea).fontSize);
+      const newSize = prompt("Enter the new font size (in px):", currentSize);
+      if (newSize) {
+        textArea.style.fontSize = newSize + "px";
+        updateStatusBar();
+      }
+    });
+    /* Funzioni More */
+    document.getElementById('help').addEventListener('click', () => {
+      window.open("help02.html", "_blank");
+    });
+    document.getElementById('faq').addEventListener('click', () => {
+      window.open("FAQ.html", "_blank");
+    });
+    document.getElementById('about').addEventListener('click', () => {
+      alert("Texive v0.2\n(c) Dino Accoto");
+    });
+    /* Funzione di trasformazione (Run) */
+    function doTransform() {
+      // Rileggi sempre il contenuto della tab Rules per avere le regole aggiornate
+      try {
+        transformRules = parseDexFile(document.getElementById('textAreaDex').value);
+      } catch (error) {
+        alert("Error updating rules:\n" + error);
+        return;
+      }
+      if (!transformRules) {
+        alert("No valid rules found. Please check the Rules tab.");
+        return;
+      }
+      // Pre-elabora il testo .mex usando il nuovo marker ",,"
+      const inputText = document.getElementById('textAreaMex').value;
+      const preprocessedText = preProcessGlue(inputText);
+      const outputText = transformText(preprocessedText, transformRules);
+      document.getElementById('textAreaTex').value = outputText;
+      unsavedChanges["tex"] = true;
+      showTabButton("tex");
+      switchTab("tex");
+      updateStatusBar();
+    }
+    document.getElementById('btnTransform').addEventListener('click', doTransform);
+    /* Aggiunta di event listener per aggiornare la status bar e gestire la pressione del tasto TAB */
+    document.querySelectorAll('#editorContent textarea').forEach(function(textarea) {
+      // Aggiorna la status bar ad ogni modifica, click o spostamento del cursore
+      textarea.addEventListener('input', updateStatusBar);
+      textarea.addEventListener('keyup', updateStatusBar);
+      textarea.addEventListener('click', updateStatusBar);
+      // Intercetta il tasto TAB per inserire 3 spazi
+      textarea.addEventListener('keydown', function(event) {
+        if (event.key === "Tab") {
+          event.preventDefault();
+          let start = this.selectionStart;
+          let end = this.selectionEnd;
+          let value = this.value;
+          this.value = value.substring(0, start) + "   " + value.substring(end);
+          this.selectionStart = this.selectionEnd = start + 3;
+          updateStatusBar();
+        }
+      });
+    });
+    // AGGIUNTA: aggiorna la finestra Bare ogni volta che vengono modificati i comandi in DEX o in MEX
+    document.getElementById('textAreaMex').addEventListener('input', updateBareTab);
+    document.getElementById('textAreaDex').addEventListener('input', updateBareTab);
+    /* Parser e funzioni di trasformazione */
+    // (Le funzioni parseDexFile, parseBracketToken, parseMexCommand, removeNullTokens, processGlue, applySubstitutions e transformText
+    // rimangono invariate, ad eccezione della modifica apportata in updateBareTab per riflettere le regole correnti.)
+  </script>
+</body>
+</html>
